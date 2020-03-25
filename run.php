@@ -48,8 +48,6 @@ class Config
     public static $chargeType = 'SPOTPAID';
 
     public static $region = 'na-siliconvalley';
-//    public static $region = 'eu-moscow';
-//    public static $securityGroupId = 'sg-rjdzursf';
     public static $loginKeyId = 'skey-643p9cs1';
 
     public static $maxPrice = 0.05;
