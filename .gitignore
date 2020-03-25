@@ -1,0 +1,21 @@
+/.env.local
+/.env.local.backup.*
+/.env.local.php
+/.env.*.local
+/.env.test
+/.env.dev
+/.env.prod
+/public/bundles/
+/var/
+/vendor/
+/.symfony/
+/.idea/
+/.vscode/
+.DS_Store
+###> symfony/web-server-bundle ###
+/.web-server-pid
+###< symfony/web-server-bundle ###
+
+###> phpunit/phpunit ###
+/phpunit.xml
+###< phpunit/phpunit ###

@@ -1,0 +1,6 @@
+{
+    "require": {
+        "tencentcloud/tencentcloud-sdk-php": "^3.0",
+        "symfony/dotenv": "^4.4"
+    }
+}
