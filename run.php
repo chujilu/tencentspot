@@ -16,9 +16,11 @@ use TencentCloud\Common\Profile\HttpProfile;
 use TencentCloud\Cvm\V20170312\CvmClient;
 // 导入要请求接口对应的Request类
 use TencentCloud\Common\Credential;
+use TencentCloud\Cvm\V20170312\Models\ActionTimer;
 use TencentCloud\Cvm\V20170312\Models\DescribeInstancesRequest;
 use TencentCloud\Cvm\V20170312\Models\DescribeInstanceTypeConfigsRequest;
 use TencentCloud\Cvm\V20170312\Models\DescribeZonesRequest;
+use TencentCloud\Cvm\V20170312\Models\Externals;
 use TencentCloud\Cvm\V20170312\Models\Filter;
 use TencentCloud\Cvm\V20170312\Models\InquiryPriceRunInstancesRequest;
 use TencentCloud\Cvm\V20170312\Models\Instance;
@@ -51,6 +53,7 @@ class Config
     public static $loginKeyId = 'skey-643p9cs1';
 
     public static $maxPrice = 0.05;
+    public static $maxTime = 60*15;
 
     public static function init()
     {
@@ -96,10 +99,18 @@ class Run
             $this->registerShutdown();
 
             $instance = $this->waitInstanceRun();
-            $cmd = "ssh -ND 1080 ubuntu@" . reset($instance->PublicIpAddresses);
+            $cmd = "ssh -o StrictHostKeyChecking=no -ND 1080 ubuntu@" . reset($instance->PublicIpAddresses) . " &";
             echo "启动进程：{$cmd} \r\n";
             echo exec($cmd);
             echo "启动成功 \r\n";
+            $start = time();
+            while (true) {
+                if (time() - $start > Config::$maxTime) {
+                    exit;
+                }
+                pcntl_signal_dispatch();
+                sleep(1);
+            }
         } else if ($this->action == 'stop') {
             $instance = $this->getExistInstance();
             if ($instance != null) {
@@ -160,12 +171,22 @@ class Run
     public function registerShutdown()
     {
         register_shutdown_function(function () {
+            exec("ps -ef|grep 'ND 1080'|grep -v grep|awk '{print $2}'|xargs kill -9");
             $instance = $this->getExistInstance();
             if ($instance != null) {
                 $this->terminateInstances($instance);
                 echo "退还实例成功\r\n";
+            } else {
+                echo "无可退还实例\r\n";
             }
         });
+        declare(ticks=1);
+        pcntl_signal(SIGINT,  function ($signo)
+        {
+            echo PHP_EOL.' ctrl+c ' . $signo . "\r\n";
+            exit;
+        });
+        echo "销毁程序注册成功 \r\n";
     }
 
     /**
@@ -209,13 +230,15 @@ class Run
      */
     public function waitInstanceRun()
     {
-        $instance = $this->getExistInstance();
-        if ($instance === null) {
-            throw new Exception("实例不存在");
-        }
-        while ($instance->InstanceState != 'RUNNING') {
-            sleep(1);
+        while (1) {
             $instance = $this->getExistInstance();
+            if ($instance === null) {
+                throw new Exception("实例不存在");
+            }
+            if ($instance->InstanceState == 'RUNNING') {
+                break;
+            }
+            sleep(1);
         }
         return $instance;
     }
