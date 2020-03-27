@@ -1,6 +1,10 @@
-# tencentCloudProxy
+# tencentspot
+
+竞价实例是按量计费的20%，成本可以控制到0.05元每小时，流量0.5每G
 
 腾讯云竞价实例自动创建程序
+
+阿里云脚本：https://github.com/rockswang/alispot
 
 ## install
 
