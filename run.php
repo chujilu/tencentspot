@@ -117,10 +117,20 @@ class Run
             } else {
                 echo "无可退还实例\r\n";
             }
+        } else if ($this->action == 'new') {
+            $instance = $this->getExistInstance();
+            if ($instance === null || !$this->checkInstance($instance)) {
+                //创建
+                echo "创建实例 \r\n";
+                $instanceId = $this->createInstance();
+                sleep(1);
+            }
+            $instance = $this->waitInstanceRun();
+            $cmd = "ssh -o StrictHostKeyChecking=no ubuntu@" . reset($instance->PublicIpAddresses) . " \r\n";
+            echo $cmd;
         } else {
             echo "动作错误：start stop\r\n";
         }
-
     }
 
     /**
